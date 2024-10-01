@@ -5,7 +5,7 @@ import { Button } from "../components/ui/button";
 import { Check, X, ChevronDown, ChevronUp } from "lucide-react";
 
 // Import types from the custom declaration
-import { VennSet } from "../types/venn";
+import { VennSet } from 'venn.js';
 
 interface GapMatrixItem {
   mentions: { name: string; mentioned: boolean }[];
