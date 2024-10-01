@@ -2,6 +2,7 @@
   "name": "keyword-analytics",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://aminforou.github.io/keyword-analytics/",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
