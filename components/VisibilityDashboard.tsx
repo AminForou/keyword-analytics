@@ -6,9 +6,15 @@ import { Button } from "../components/ui/button"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 
+// Add this interface near the top of your file, after the other interfaces
+interface DataPoint {
+  date: string;
+  [key: string]: string | number; // This allows for dynamic competitor names as keys
+}
+
 // Function to generate data for the last 14 days of the current month
 const generateData = (competitors: Competitor[]) => {
-  const data = []
+  const data: DataPoint[] = []
   const today = new Date()
   const currentYear = today.getFullYear()
   const currentMonth = today.getMonth()
@@ -17,7 +23,7 @@ const generateData = (competitors: Competitor[]) => {
 
   for (let day = startDay; day <= lastDayOfMonth; day++) {
     const date = new Date(currentYear, currentMonth, day)
-    const dataPoint: any = {
+    const dataPoint: DataPoint = {
       date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     }
     competitors.forEach(competitor => {
@@ -46,7 +52,7 @@ export default function VisibilityDashboard({
   onVisibleCompetitorsChange 
 }: VisibilityDashboardProps) {
   const [randomValues, setRandomValues] = useState<Record<string, string>>({})
-  const [data, setData] = useState<any[]>([])
+  const [data, setData] = useState<DataPoint[]>([])
   const [activeTab, setActiveTab] = useState<'chart' | 'table'>('chart')
 
   useEffect(() => {

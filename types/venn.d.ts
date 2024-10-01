@@ -1,16 +1,17 @@
 declare module 'venn.js' {
-    interface VennDiagram {
-      width(value: number): VennDiagram;
-      height(value: number): VennDiagram;
-      // Add other methods as needed
+    export interface VennDiagram {
+        (): {
+            width: (width: number) => this;
+            height: (height: number) => this;
+            // Add other methods as needed
+        };
     }
-  
-    function VennDiagram(): VennDiagram;
-  
-    const venn: {
-      VennDiagram: typeof VennDiagram;
-    };
-  
-    export default venn;
-  }
-  
+
+    export interface VennSet {
+        sets: string[];
+        size: number;
+    }
+
+    const VennDiagram: VennDiagram;
+    export default VennDiagram;
+}
