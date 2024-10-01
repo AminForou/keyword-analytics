@@ -5,7 +5,7 @@ import { Button } from "../components/ui/button";
 import { Check, X, ChevronDown, ChevronUp } from "lucide-react";
 
 // Import types from the custom declaration
-import { VennSet, VennDiagram } from 'venn.js';
+import { VennSet, } from 'venn.js';
 
 interface GapMatrixItem {
   mentions: { name: string; mentioned: boolean }[];
@@ -90,49 +90,49 @@ export default function GapAnalysisVenn({ gapMatrix, competitors }: { gapMatrix:
         // Set d3 globally
         (window as Window & typeof globalThis & { d3: typeof d3 }).d3 = d3;
         try {
-          // Dynamically import venn.js after d3 is set globally
+          // Dynamically import venn.js
           const vennModule = await import('venn.js');
-          const VennDiagram = vennModule.default || vennModule.VennDiagram;
-
+          const VennDiagram = vennModule.VennDiagram;
+  
           // Remove existing content
           d3.select(vennRef.current).selectAll("*").remove();
-
+  
           // Create and configure the Venn diagram
-          const chart = VennDiagram()
+          const chart: vennModule.VennDiagram = VennDiagram()
             .width(600)
             .height(400);
-
+  
           // Draw the Venn diagram
           const div = d3.select(vennRef.current).datum(vennData).call(chart);
-
+  
           const svg = div.select('svg');
           svg.attr('width', '100%')
-             .attr('height', '100%')
-             .attr('preserveAspectRatio', 'xMidYMid meet')
-             .attr('viewBox', '0 0 600 400');
-
+            .attr('height', '100%')
+            .attr('preserveAspectRatio', 'xMidYMid meet')
+            .attr('viewBox', '0 0 600 400');
+  
           div.selectAll("path")
             .style("stroke-opacity", 0)
             .style("stroke", "#fff")
             .style("stroke-width", 3);
-
+  
           div.selectAll("g")
-            .on("mouseover", function() {
+            .on("mouseover", function () {
               const selection = d3.select(this);
               selection.select("path")
                 .style("fill-opacity", .2)
                 .style("stroke-opacity", 1);
             })
-            .on("mouseout", function() {
+            .on("mouseout", function () {
               const selection = d3.select(this);
               selection.select("path")
                 .style("fill-opacity", 0.1)
                 .style("stroke-opacity", 0);
             })
-            .on("click", function(event, d: VennSet) {
+            .on("click", function (event, d: VennSet) {
               setSelectedIntersection(d.sets);
             });
-
+  
           console.log('Venn diagram module loaded and rendered successfully');
         } catch (error) {
           console.error('Error initializing venn.js module:', error);
@@ -143,6 +143,7 @@ export default function GapAnalysisVenn({ gapMatrix, competitors }: { gapMatrix:
     };
     loadAndRenderVenn();
   }, [vennData]);
+  
 
   useEffect(() => {
     const loadAndRenderIndividualVenn = async () => {

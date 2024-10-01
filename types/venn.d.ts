@@ -1,6 +1,4 @@
-declare module 'venn.js' {
-    import * as d3 from 'd3';
-  
+declare module 'venn.js' {  
     // The default export is a function that creates a Venn diagram instance
     export default function VennDiagram(): VennDiagramInstance;
   

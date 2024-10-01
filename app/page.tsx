@@ -1,5 +1,10 @@
-import { redirect } from 'next/navigation';
+// app/keyword-analytics/page.tsx
 
-export default function Home() {
-  redirect('/keyword-analytics');
-}
+import React from 'react';
+import KeywordAnalytics from '../components/KeywordAnalytics';
+
+const KeywordAnalyticsPage = () => {
+  return <KeywordAnalytics />;
+};
+
+export default KeywordAnalyticsPage;
