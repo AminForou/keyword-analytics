@@ -1,26 +1,22 @@
-// types/d3-venn.d.ts
-
-import * as d3 from 'd3';
-
-declare module 'd3' {
-  namespace venn {
-    function VennDiagram(): VennDiagramInstance;
-
-    interface VennDiagramInstance {
+declare module 'venn.js' {
+    import * as d3 from 'd3';
+  
+    // The default export is a function that creates a Venn diagram instance
+    export default function VennDiagram(): VennDiagramInstance;
+  
+    // Interface for the Venn diagram instance with available methods
+    export interface VennDiagramInstance {
       width(width: number): VennDiagramInstance;
       height(height: number): VennDiagramInstance;
-      // Add other methods as needed, with proper return types
+      // Add other methods if you use them
+      // For example:
+      // fontSize(size: string): VennDiagramInstance;
+      // duration(duration: number): VennDiagramInstance;
     }
-
-    interface VennSet {
+  
+    // Interface for the data structure used by the Venn diagram
+    export interface VennSet {
       sets: string[];
       size: number;
     }
   }
-}
-
-// Export `VennSet` directly for easy import in other parts of your project
-export interface VennSet {
-  sets: string[];
-  size: number;
-}
