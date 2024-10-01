@@ -12,9 +12,15 @@ declare module 'd3' {
       // Add other methods as needed, with proper return types
     }
 
-    interface VennSet { // No need to export here since it's part of the module augmentation
+    interface VennSet {
       sets: string[];
       size: number;
     }
   }
+}
+
+// Export `VennSet` directly for easy import in other parts of your project
+export interface VennSet {
+  sets: string[];
+  size: number;
 }
