@@ -47,8 +47,8 @@ interface VisibilityDashboardProps {
 }
 
 export default function VisibilityDashboard({ 
-  competitors, 
-  visibleCompetitors, 
+  competitors = [], // Provide a default empty array
+  visibleCompetitors = [], // Provide a default empty array
   onVisibleCompetitorsChange 
 }: VisibilityDashboardProps) {
   const [randomValues, setRandomValues] = useState<Record<string, string>>({})
@@ -56,7 +56,7 @@ export default function VisibilityDashboard({
   const [activeTab, setActiveTab] = useState<'chart' | 'table'>('chart')
 
   useEffect(() => {
-    if (competitors) {
+    if (competitors && competitors.length > 0) {
       // Only set initial visible competitors if the array is empty
       if (visibleCompetitors.length === 0) {
         onVisibleCompetitorsChange(competitors.map(competitor => competitor.name));
