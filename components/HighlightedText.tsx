@@ -7,8 +7,6 @@ interface HighlightedTextProps {
 }
 
 const HighlightedText: React.FC<HighlightedTextProps> = ({ text, brandMentions, competitorMentions }) => {
-  console.log('HighlightedText props:', { text, brandMentions, competitorMentions });
-
   if (typeof text !== 'string') {
     return <>{text}</>;
   }
@@ -25,21 +23,31 @@ const HighlightedText: React.FC<HighlightedTextProps> = ({ text, brandMentions, 
 
     return parts.map((part, index) => {
       if (regex.test(part)) {
-        console.log(`Highlighting: ${part} with class: ${className}`);
         return <span key={index} className={className}>{part}</span>;
       }
       return part;
     });
   }
-  const highlightedBrands = highlightText(text, brandMentions, 'bg-green-200');
-  const fullyHighlighted = highlightedBrands.map((part) => {
-    if (typeof part === 'string') {
-      return highlightText(part, competitorMentions, 'bg-yellow-200');
-    }
-    return part;
+
+  const lines = text.split('\n');
+  const highlightedLines = lines.map((line, lineIndex) => {
+    const highlightedBrands = highlightText(line, brandMentions, 'bg-green-200');
+    const fullyHighlighted = highlightedBrands.map((part) => {
+      if (typeof part === 'string') {
+        return highlightText(part, competitorMentions, 'bg-yellow-200');
+      }
+      return part;
+    });
+
+    return (
+      <React.Fragment key={lineIndex}>
+        {fullyHighlighted}
+        {lineIndex < lines.length - 1 && <br />}
+      </React.Fragment>
+    );
   });
 
-  return <>{fullyHighlighted}</>;
+  return <>{highlightedLines}</>;
 }
 
 export default HighlightedText;

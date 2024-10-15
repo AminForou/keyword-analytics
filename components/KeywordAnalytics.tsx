@@ -1,6 +1,6 @@
- "use client"
+"use client"
 
-import React, { useState, useRef, useEffect, useCallback } from "react"
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react"
 import { Button } from "../components/ui/button"
 import { Input } from "../components/ui/input"
 import {
@@ -27,7 +27,7 @@ import {
 import { Label } from "../components/ui/label"
 import { ScrollArea } from "../components/ui/scroll-area"
 import { Tabs, TabsList, TabsTrigger } from "../components/ui/tabs"
-import { ChevronDown, ChevronUp, MoreHorizontal, X, Link, ArrowRightLeft, MessageSquare, Pencil, Trash  } from "lucide-react"
+import { ChevronDown, ChevronUp, MoreHorizontal, X, Link, ArrowRightLeft, MessageSquare, Pencil, Trash, ExternalLink  } from "lucide-react"
 import VisibilityDashboard from "./VisibilityDashboard"
 import * as Tooltip from '@radix-ui/react-tooltip';
 import { Badge } from "../components/ui/badge"
@@ -41,11 +41,13 @@ import MentionsPopover from './MentionsPopover';
 import { Card, CardContent } from "../components/ui/card"
 import { BarChart2, TrendingUp, FileText } from "lucide-react"
 import NextLink from "next/link"
+import { Pagination } from "./ui/pagination";
 
 interface Competitor {
   id: number;
   names: string[];
   color: string;
+  isMainBrand?: boolean;
 }
 
 interface Keyword {
@@ -86,6 +88,15 @@ export default function KeywordAnalytics() {
 
   const [activeView, setActiveView] = useState("overview")
 
+  const [mainBrand, setMainBrand] = useState<Competitor>({
+    name: "Nike",
+    color: "#000000",
+    isMainBrand: true
+  });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const handleSort = (column: keyof Keyword) => {
     if (column === sortColumn) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -117,9 +128,17 @@ export default function KeywordAnalytics() {
     return 0;
   });
 
-  const filteredKeywords = sortedKeywords.filter(keyword =>
-    keyword.keyword.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const filteredKeywords = useMemo(() => {
+    return sortedKeywords.filter(keyword =>
+      keyword.keyword.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [sortedKeywords, searchTerm]);
+
+  const pageCount = Math.ceil(filteredKeywords.length / itemsPerPage);
+  const paginatedKeywords = filteredKeywords.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const handleAddKeyword = () => {
     if (newKeyword.trim() !== "") {
@@ -264,49 +283,36 @@ export default function KeywordAnalytics() {
     return names;
   };
 
-  const renderTextWithCitations = (text: string, citations: { id: number, url: string }[]) => {
+  const renderTextWithCitations = (text: string, citations: { id: number; url: string }[]) => {
     const parts = text.split(/(\[\d+\])/g);
     return parts.map((part, index) => {
-      const match = part.match(/\[(\d+)\]/);
-      if (match) {
-        const citationId = parseInt(match[1]);
+      if (part.match(/\[\d+\]/)) {
+        const citationId = parseInt(part.replace(/\[|\]/g, ''));
         const citation = citations.find(c => c.id === citationId);
         if (citation) {
-          const truncatedUrl = citation.url.length > 30 ? citation.url.substring(0, 30) + '...' : citation.url;
           return (
-            <Tooltip.Provider key={index}>
-              <Tooltip.Root>
-                <Tooltip.Trigger asChild>
-                  <a href={citation.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-blue-500 hover:text-blue-700">
-                    <Link className="h-3 w-3 ml-1" />
-                  </a>
-                </Tooltip.Trigger>
-                <Tooltip.Portal>
-                  <Tooltip.Content
-                    className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-sm"
-                    sideOffset={5}
-                  >
-                    {truncatedUrl}
-                    <Tooltip.Arrow className="fill-gray-100" />
-                  </Tooltip.Content>
-                </Tooltip.Portal>
-              </Tooltip.Root>
-            </Tooltip.Provider>
+            <a
+              key={index}
+              href={citation.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:underline"
+            >
+              {part}
+            </a>
           );
         }
       }
-      const competitorNames = getAllCompetitorNames();
-      console.log('Rendering HighlightedText with:', { part, brandMentions, competitorNames });
       return (
         <HighlightedText
           key={index}
           text={part}
           brandMentions={brandMentions}
-          competitorMentions={competitorNames}
+          competitorMentions={competitors.flatMap(c => c.names)}
         />
       );
     });
-  }
+  };
 
   const truncateUrl = (url: string, maxLength: number = 30) => {
     if (url.length <= maxLength) return url;
@@ -335,6 +341,7 @@ export default function KeywordAnalytics() {
           <>
             <div className="mb-4">
               <VisibilityDashboard 
+                mainBrand={mainBrand}
                 competitors={competitors.map(c => ({ name: c.names[0], color: c.color }))}
                 visibleCompetitors={visibleCompetitors}
                 onVisibleCompetitorsChange={handleVisibleCompetitorsChange}
@@ -415,11 +422,11 @@ export default function KeywordAnalytics() {
                 </DialogContent>
               </Dialog>
             </div>
-            <div className="flex rounded-lg shadow-md overflow-hidden mt-6">
-              <div className={`w-full ${selectedConversation ? 'lg:w-2/3' : ''} transition-all duration-300 ease-in-out`}>
-                <div className="overflow-x-auto">
+            <div className="rounded-lg shadow-[0_0_10px_rgba(0,0,0,0.1)] overflow-hidden mt-6 relative">
+              <div className="w-full transition-all duration-300 ease-in-out">
+                <div className={`overflow-x-auto transition-all duration-300 ease-in-out ${selectedConversation ? 'lg:filter lg:blur-sm lg:brightness-75' : ''}`}>
                   <Table className="w-full">
-                    <TableHeader className="bg-gray-100">
+                    <TableHeader>
                       <TableRow>
                         <TableHead className="w-1/6">
                           <Button variant="ghost" onClick={() => handleSort("keyword")} className="font-semibold">
@@ -453,7 +460,7 @@ export default function KeywordAnalytics() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredKeywords.map((item, index) => (
+                      {paginatedKeywords.map((item, index) => (
                         <TableRow 
                           key={item.id} 
                           className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition-colors`}
@@ -523,10 +530,25 @@ export default function KeywordAnalytics() {
                     </TableBody>
                   </Table>
                 </div>
+                {pageCount > 1 && (
+                  <div className={`mt-4 flex justify-center pb-4 transition-all duration-300 ease-in-out ${selectedConversation ? 'lg:filter lg:blur-sm lg:brightness-75' : ''}`}>
+                    <Pagination
+                      currentPage={currentPage}
+                      totalPages={pageCount}
+                      onPageChange={setCurrentPage}
+                    />
+                  </div>
+                )}
               </div>
-              {selectedConversation && (
-                <div ref={conversationPaneRef} className="hidden lg:block lg:w-1/3 border-l border-gray-200 bg-white overflow-hidden">
-                  <div className="h-full flex flex-col">
+              <div 
+                className={`w-full lg:w-1/2 border-l border-gray-200 bg-white overflow-hidden absolute right-0 top-0 h-full shadow-[-10px_0_10px_-5px_rgba(0,0,0,0.1)] transition-all duration-300 ease-in-out transform ${
+                  selectedConversation 
+                    ? 'translate-x-0 opacity-100' 
+                    : 'translate-x-full opacity-0'
+                }`}
+              >
+                {selectedConversation && (
+                  <div ref={conversationPaneRef} className="h-full">
                     <div className="p-4 border-b border-gray-200">
                       <div className="flex justify-between items-center mb-3">
                         <h2 className="text-lg font-semibold text-gray-800">{selectedConversation.keyword}</h2>
@@ -545,16 +567,22 @@ export default function KeywordAnalytics() {
                           {getIntentLabel(selectedConversation.intent)}
                         </Badge>
                         <Badge variant="outline">
-                          Imp: {selectedConversation.impressions.toLocaleString()}
+                          Impressions: {selectedConversation.impressions.toLocaleString()}
                         </Badge>
                         <Badge variant="outline">
                           Clicks: {selectedConversation.clicks.toLocaleString()}
                         </Badge>
                       </div>
-                      <div className="text-sm mb-3">
+                      <div className="text-sm mb-3 flex items-center">
                         <span className="font-medium text-gray-500 mr-2">URL:</span>
-                        <a href={selectedConversation.url} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline truncate">
-                          {truncateUrl(selectedConversation.url, 40)}
+                        <a 
+                          href={selectedConversation.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-blue-500 hover:underline flex items-center"
+                        >
+                          {selectedConversation.url}
+                          <ExternalLink className="ml-1 h-4 w-4" />
                         </a>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -582,7 +610,7 @@ export default function KeywordAnalytics() {
                         />
                         <MentionsPopover 
                           title="Citations" 
-                          count={countCitations(selectedConversation.chatGPT)}
+                          count={selectedConversation.citations.length}
                           content={
                             <ul className="list-disc pl-4 text-xs space-y-1">
                               {selectedConversation.citations.map((citation, index) => (
@@ -591,10 +619,10 @@ export default function KeywordAnalytics() {
                                     href={citation.url} 
                                     target="_blank" 
                                     rel="noopener noreferrer" 
-                                    className="text-blue-500 hover:underline"
-                                    title={citation.url}
+                                    className="text-blue-500 hover:underline flex items-center"
                                   >
-                                    {truncateUrl(citation.url, 35)}
+                                    {citation.url}
+                                    <ExternalLink className="ml-1 h-3 w-3" />
                                   </a>
                                 </li>
                               ))}
@@ -605,14 +633,14 @@ export default function KeywordAnalytics() {
                     </div>
                     <div className="flex-1 overflow-hidden">
                       <ScrollArea className="h-full">
-                        <div className="p-4 text-sm">
+                        <div className="p-4 text-sm whitespace-pre-wrap">
                           {renderTextWithCitations(selectedConversation.chatGPT, selectedConversation.citations)}
                         </div>
                       </ScrollArea>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </>
         )

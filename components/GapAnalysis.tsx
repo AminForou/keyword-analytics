@@ -17,7 +17,7 @@ export default function GapAnalysis() {
   const [gapFilter, setGapFilter] = useState("");
 
   const allBrands = useMemo(() => {
-    return [mainBrand, ...competitors.map(c => c.names[0])];
+    return [mainBrand, ...competitors.map(c => c.names[0]).filter(name => name !== mainBrand)];
   }, [mainBrand, competitors]);
 
   const fullGapMatrix = useMemo(() => {
@@ -123,6 +123,7 @@ export default function GapAnalysis() {
           gapMatrix={filteredGapMatrix} 
           gapFilter={gapFilter} 
           allBrands={allBrands}
+          mainBrand={mainBrand}
         />
         <GapAnalysisDistribution gapMatrix={filteredGapMatrix} />
         <GapAnalysisVenn 

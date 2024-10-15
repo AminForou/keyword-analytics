@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
 import { Button } from "../components/ui/button"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs"
@@ -38,43 +38,48 @@ const generateData = (competitors: Competitor[]) => {
 interface Competitor {
   name: string;
   color: string;
+  isMainBrand?: boolean;
 }
 
 interface VisibilityDashboardProps {
+  mainBrand: Competitor;
   competitors: Competitor[];
   visibleCompetitors: string[];
   onVisibleCompetitorsChange: (visibleCompetitors: string[]) => void;
 }
 
 export default function VisibilityDashboard({ 
-  competitors = [], // Provide a default empty array
-  visibleCompetitors = [], // Provide a default empty array
+  mainBrand,
+  competitors = [], 
+  visibleCompetitors = [], 
   onVisibleCompetitorsChange 
 }: VisibilityDashboardProps) {
   const [randomValues, setRandomValues] = useState<Record<string, string>>({})
   const [data, setData] = useState<DataPoint[]>([])
   const [activeTab, setActiveTab] = useState<'chart' | 'table'>('chart')
 
+  const allBrands = useMemo(() => [mainBrand, ...competitors], [mainBrand, competitors]);
+
   useEffect(() => {
-    if (competitors && competitors.length > 0) {
+    if (allBrands.length > 0) {
       // Only set initial visible competitors if the array is empty
       if (visibleCompetitors.length === 0) {
-        onVisibleCompetitorsChange(competitors.map(competitor => competitor.name));
+        onVisibleCompetitorsChange(allBrands.map(brand => brand.name));
       }
-      setData(generateData(competitors))
-      const newRandomValues = competitors.reduce((acc, competitor) => {
-        acc[competitor.name] = (Math.random() * 0.3).toFixed(2)
+      setData(generateData(allBrands))
+      const newRandomValues = allBrands.reduce((acc, brand) => {
+        acc[brand.name] = (Math.random() * 0.3).toFixed(2)
         return acc
       }, {} as Record<string, string>)
       setRandomValues(newRandomValues)
     }
-  }, [competitors, visibleCompetitors, onVisibleCompetitorsChange]);
+  }, [allBrands, visibleCompetitors, onVisibleCompetitorsChange]);
 
-  const toggleCompetitor = (competitorName: string) => {
+  const toggleBrand = (brandName: string) => {
     onVisibleCompetitorsChange(
-      visibleCompetitors.includes(competitorName)
-        ? visibleCompetitors.filter(name => name !== competitorName)
-        : [...visibleCompetitors, competitorName]
+      visibleCompetitors.includes(brandName)
+        ? visibleCompetitors.filter(name => name !== brandName)
+        : [...visibleCompetitors, brandName]
     );
   }
 
@@ -98,39 +103,39 @@ export default function VisibilityDashboard({
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-4">
-          {competitors.map(competitor => (
-            <Card key={competitor.name} className="p-2 hover:shadow-md transition-shadow">
-              <div className="text-sm font-semibold truncate" title={competitor.name}>
-                {competitor.name}
+          {allBrands.map(brand => (
+            <Card key={brand.name} className="p-2 hover:shadow-md transition-shadow">
+              <div className="text-sm font-semibold truncate" title={brand.name}>
+                {brand.name} {brand.isMainBrand && "(Main)"}
               </div>
               <div className="text-2xl font-bold">
-                {(data[data.length - 1]?.[competitor.name] || 0).toFixed(2)}%
+                {(data[data.length - 1]?.[brand.name] || 0).toFixed(2)}%
               </div>
               <div className="text-xs text-red-500">
-                -{randomValues[competitor.name] || '0.00'}
+                -{randomValues[brand.name] || '0.00'}
               </div>
             </Card>
           ))}
         </div>
         <div className="flex flex-wrap gap-2 mb-4">
-          {competitors.map(competitor => (
+          {allBrands.map(brand => (
             <Button
-              key={competitor.name}
+              key={brand.name}
               variant="outline"
               size="sm"
               className={`px-2 py-1 rounded-full transition-all ${
-                visibleCompetitors.includes(competitor.name)
+                visibleCompetitors.includes(brand.name)
                   ? 'opacity-100'
                   : 'opacity-50'
               }`}
               style={{ 
-                backgroundColor: visibleCompetitors.includes(competitor.name) ? competitor.color : 'transparent',
-                color: visibleCompetitors.includes(competitor.name) ? 'white' : competitor.color,
-                borderColor: competitor.color
+                backgroundColor: visibleCompetitors.includes(brand.name) ? brand.color : 'transparent',
+                color: visibleCompetitors.includes(brand.name) ? 'white' : brand.color,
+                borderColor: brand.color
               }}
-              onClick={() => toggleCompetitor(competitor.name)}
+              onClick={() => toggleBrand(brand.name)}
             >
-              {competitor.name}
+              {brand.isMainBrand ? `${brand.name} (Main)` : brand.name}
             </Button>
           ))}
         </div>
@@ -147,14 +152,14 @@ export default function VisibilityDashboard({
                   <XAxis dataKey="date" tick={{fontSize: 10}} />
                   <YAxis tick={{fontSize: 10}} />
                   <Tooltip />
-                  {competitors.map(competitor => (
-                    visibleCompetitors.includes(competitor.name) && (
+                  {allBrands.map(brand => (
+                    visibleCompetitors.includes(brand.name) && (
                       <Line
-                        key={competitor.name}
+                        key={brand.name}
                         type="monotone"
-                        dataKey={competitor.name}
-                        stroke={competitor.color}
-                        strokeWidth={2}
+                        dataKey={brand.name}
+                        stroke={brand.color}
+                        strokeWidth={brand.isMainBrand ? 3 : 2}
                         dot={false}
                       />
                     )
@@ -169,20 +174,23 @@ export default function VisibilityDashboard({
                 <thead>
                   <tr>
                     <th className="text-left p-2">Date</th>
-                    {visibleCompetitors.map(competitor => (
-                      <th key={competitor} className="text-left p-2" style={{ color: competitors.find(c => c.name === competitor)?.color }}>
-                        {competitor}
-                      </th>
-                    ))}
+                    {visibleCompetitors.map(brandName => {
+                      const brand = allBrands.find(b => b.name === brandName);
+                      return (
+                        <th key={brandName} className="text-left p-2" style={{ color: brand?.color }}>
+                          {brand?.isMainBrand ? `${brandName} (Main)` : brandName}
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>
                   {data.map((row, index) => (
                     <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : ''}>
                       <td className="p-2">{row.date}</td>
-                      {visibleCompetitors.map(competitor => (
-                        <td key={competitor} className="p-2">
-                          {row[competitor]?.toFixed(2)}%
+                      {visibleCompetitors.map(brandName => (
+                        <td key={brandName} className="p-2">
+                          {row[brandName]?.toFixed(2)}%
                         </td>
                       ))}
                     </tr>

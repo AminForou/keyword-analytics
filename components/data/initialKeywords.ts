@@ -296,7 +296,8 @@ export const initialKeywords = [
       competitorMentions: 0,
       citations: [
         { id: 1, url: "https://www.runnersworld.com/best-running-shoes-for-women-2024" },
-        { id: 2, url: "https://www.womenshealthmag.com/best-running-shoes-2024" }
+        { id: 2, url: "https://www.womenshealthmag.com/best-running-shoes-2024" },
+        { id: 3, url: "https://www.nike.com/a/best-running-shoes-for-women-2024" }
       ]
     },
     {
@@ -562,7 +563,8 @@ export const initialKeywords = [
       competitorMentions: 4,
       citations: [
         { id: 1, url: "https://www.runnersworld.com/gear/a20811718/best-treadmill-running-shoes/" },
-        { id: 2, url: "https://www.verywellfit.com/best-treadmill-running-shoes-4159300" }
+        { id: 2, url: "https://www.verywellfit.com/best-treadmill-running-shoes-4159300" },
+        { id: 3, url: "https://www.nike.com/a/best-running-shoes-for-treadmill-workouts" }
       ]
     },
     {
@@ -607,7 +609,8 @@ export const initialKeywords = [
       competitorMentions: 0,
       citations: [
         { id: 1, url: "https://www.runnersworld.com/best-running-shoes-for-high-arches-2024" },
-        { id: 2, url: "https://www.verywellfit.com/best-running-shoes-for-high-arches-2024" }
+        { id: 2, url: "https://www.verywellfit.com/best-running-shoes-for-high-arches-2024" },
+        { id: 3, url: "https://www.nike.com/a/best-running-shoes-for-high-arches" }
       ]
     },
     {
@@ -652,7 +655,8 @@ export const initialKeywords = [
       competitorMentions: 0,
       citations: [
         { id: 1, url: "https://www.runnersworld.com/best-running-shoes-for-beginners-2024" },
-        { id: 2, url: "https://www.verywellfit.com/best-running-shoes-for-beginners-2024" }
+        { id: 2, url: "https://www.verywellfit.com/best-running-shoes-for-beginners-2024" },
+        { id: 3, url: "https://www.nike.com/a/best-running-shoes-for-beginners" }
     ]
   },
   {

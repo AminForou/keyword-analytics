@@ -18,11 +18,13 @@ type GapMatrixItem = {
 export default function GapAnalysisTopTable({ 
   gapMatrix, 
   gapFilter, 
-  allBrands 
+  allBrands,
+  mainBrand
 }: {
   gapMatrix: GapMatrixItem[];
   gapFilter: string | null;
   allBrands: string[];
+  mainBrand: string;
 }) {
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' }>({ key: '', direction: 'ascending' });
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -88,7 +90,8 @@ export default function GapAnalysisTopTable({
                 Clicks <ArrowUpDown className="ml-2 h-4 w-4" />
               </Button>
             </TableHead>
-            {allBrands.map(brand => (
+            <TableHead>{mainBrand}</TableHead>
+            {allBrands.filter(brand => brand !== mainBrand).map(brand => (
               <TableHead key={brand}>{brand}</TableHead>
             ))}
             <TableHead>Gap Status</TableHead>
@@ -109,9 +112,16 @@ export default function GapAnalysisTopTable({
               <TableCell>{row.intent}</TableCell>
               <TableCell>{row.impressions.toLocaleString()}</TableCell>
               <TableCell>{row.clicks.toLocaleString()}</TableCell>
-              {allBrands.map(brand => (
+              <TableCell>
+                {row.mentions.find(m => m.name === mainBrand)?.mentioned ? (
+                  <Check className="text-green-500" />
+                ) : (
+                  <X className="text-red-500" />
+                )}
+              </TableCell>
+              {allBrands.filter(brand => brand !== mainBrand).map(brand => (
                 <TableCell key={brand}>
-                  {row.mentions.find((m: { name: string; mentioned: boolean }) => m.name === brand)?.mentioned ? (
+                  {row.mentions.find(m => m.name === brand)?.mentioned ? (
                     <Check className="text-green-500" />
                   ) : (
                     <X className="text-red-500" />
