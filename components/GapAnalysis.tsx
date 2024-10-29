@@ -9,11 +9,15 @@ import GapAnalysisDistribution from './GapAnalysisDistribution';
 import GapAnalysisVenn from './GapAnalysisVenn';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../components/ui/tooltip";
 import { InfoIcon } from "lucide-react";
+
+// Add constant for main brand names
+const MAIN_BRAND_NAMES = ["Gap", "Old Navy", "Banana Republic"];
+
 export default function GapAnalysis() {
   const [keywords] = useState(initialKeywords);
   const [competitors] = useState(initialCompetitors);
   const [searchTerm, setSearchTerm] = useState("");
-  const [mainBrand, setMainBrand] = useState("Nike");
+  const [mainBrand, setMainBrand] = useState(MAIN_BRAND_NAMES[0]);
   const [gapFilter, setGapFilter] = useState("");
 
   const allBrands = useMemo(() => {
@@ -23,7 +27,9 @@ export default function GapAnalysis() {
   const fullGapMatrix = useMemo(() => {
     return keywords.map(keyword => {
       const brandMentions = keyword.chatGPT.toLowerCase();
-      const mainBrandMentioned = brandMentions.includes(mainBrand.toLowerCase());
+      const mainBrandMentioned = MAIN_BRAND_NAMES.some(brand => 
+        brandMentions.includes(brand.toLowerCase())
+      );
 
       const competitorsMentioned = allBrands.map(brand => ({
         name: brand,
@@ -49,7 +55,8 @@ export default function GapAnalysis() {
         impressions: keyword.impressions,
         clicks: keyword.clicks,
         mentions: competitorsMentioned,
-        gapStatus: gapStatus
+        gapStatus: gapStatus,
+        citations: keyword.citations
       };
     });
   }, [keywords, allBrands, mainBrand]);
@@ -70,9 +77,8 @@ export default function GapAnalysis() {
             value={mainBrand}
             onChange={(e) => setMainBrand(e.target.value)}
           >
-            <option value="Nike">Nike</option>
-            {competitors.map(c => (
-              <option key={c.id} value={c.names[0]}>{c.names[0]}</option>
+            {MAIN_BRAND_NAMES.map(brand => (
+              <option key={brand} value={brand}>{brand}</option>
             ))}
           </Select>
           <div className="space-y-2">

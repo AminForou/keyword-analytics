@@ -12,6 +12,8 @@ interface DataPoint {
   [key: string]: string | number; // This allows for dynamic competitor names as keys
 }
 
+const MAIN_BRAND_ALIASES = ["Gap", "Old Navy", "Banana Republic"];
+
 // Function to generate data for the last 14 days of the current month
 const generateData = (competitors: Competitor[]) => {
   const data: DataPoint[] = []
@@ -26,9 +28,18 @@ const generateData = (competitors: Competitor[]) => {
     const dataPoint: DataPoint = {
       date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
     }
-    competitors.forEach(competitor => {
-      dataPoint[competitor.name] = +(Math.random() * 5).toFixed(2)
-    })
+    
+    // Generate combined value for main brand
+    const mainBrandValue = +(Math.random() * 5).toFixed(2);
+    dataPoint["Gap Inc."] = mainBrandValue;
+
+    // Generate values for other competitors
+    competitors
+      .filter(comp => !MAIN_BRAND_ALIASES.includes(comp.name))
+      .forEach(competitor => {
+        dataPoint[competitor.name] = +(Math.random() * 5).toFixed(2)
+      });
+
     data.push(dataPoint)
   }
 
@@ -58,7 +69,20 @@ export default function VisibilityDashboard({
   const [data, setData] = useState<DataPoint[]>([])
   const [activeTab, setActiveTab] = useState<'chart' | 'table'>('chart')
 
-  const allBrands = useMemo(() => [mainBrand, ...competitors], [mainBrand, competitors]);
+  const allBrands = useMemo(() => {
+    const mainBrandEntity = {
+      name: "Gap Inc.",
+      color: "#000000",
+      isMainBrand: true,
+      aliases: MAIN_BRAND_ALIASES
+    };
+
+    const otherCompetitors = competitors.filter(
+      comp => !MAIN_BRAND_ALIASES.includes(comp.name)
+    );
+
+    return [mainBrandEntity, ...otherCompetitors];
+  }, [competitors]);
 
   useEffect(() => {
     if (allBrands.length > 0) {
@@ -100,6 +124,9 @@ export default function VisibilityDashboard({
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg">Visibility Dashboard</CardTitle>
+        <div className="text-sm text-gray-500">
+          Gap Inc. includes: {MAIN_BRAND_ALIASES.join(", ")}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mb-4">

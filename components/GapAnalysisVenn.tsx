@@ -7,9 +7,18 @@ import { Check, X, ChevronDown, ChevronUp } from "lucide-react";
 // Import types from the custom declaration
 import { VennSet, } from 'venn.js';
 
+// Add constants at the top of the file
+const MAIN_BRAND_ALIASES = ["Gap", "Old Navy", "Banana Republic"];
+const MAIN_BRAND_DOMAINS = [
+  "www.gap.com",
+  "oldnavy.gap.com",
+  "bananarepublic.gap.com"
+];
+
 interface GapMatrixItem {
   mentions: { name: string; mentioned: boolean }[];
   keyword: string;
+  citations?: { id: number; url: string }[]; // Add citations to the interface
 }
 
 interface Competitor {
@@ -18,13 +27,13 @@ interface Competitor {
 }
 
 export default function GapAnalysisVenn({ gapMatrix, competitors }: { gapMatrix: GapMatrixItem[], competitors: Competitor[] }) {
-  const [activeBrands, setActiveBrands] = useState<string[]>(['Nike', ...competitors.map(c => c.names[0])]);
-  const [allBrands] = useState<string[]>(['Nike', ...competitors.map(c => c.names[0])]);
+  const [activeBrands, setActiveBrands] = useState<string[]>(['Gap Inc.', ...competitors.map(c => c.names[0])]);
+  const [allBrands] = useState<string[]>(['Gap Inc.', ...competitors.map(c => c.names[0])]);
   const [selectedIntersection, setSelectedIntersection] = useState<string[] | null>(null);
 
   // Removed the vennDiagram state variable
   const vennRef = useRef<HTMLDivElement | null>(null);
-  const [mainBrand, setMainBrand] = useState<string>('Nike');
+  const [mainBrand, setMainBrand] = useState<string>('Gap');
   const [isAccordionOpen, setIsAccordionOpen] = useState(false);
 
   const toggleBrand = (brand: string) => {
@@ -39,15 +48,45 @@ export default function GapAnalysisVenn({ gapMatrix, competitors }: { gapMatrix:
   const vennData = useMemo(() => {
     const sets: VennSet[] = activeBrands.map(brand => ({
       sets: [brand],
-      size: gapMatrix.filter(row => row.mentions.find(m => m.name === brand)?.mentioned).length
+      size: gapMatrix.filter(row => {
+        if (brand === 'Gap Inc.') {
+          const hasChatGPTMention = MAIN_BRAND_ALIASES.some(alias => 
+            row.mentions.find(m => m.name === alias)?.mentioned
+          );
+          const hasCitation = row.citations?.some(citation => 
+            MAIN_BRAND_DOMAINS.includes(new URL(citation.url).hostname)
+          );
+          return hasChatGPTMention || hasCitation;
+        }
+        return row.mentions.find(m => m.name === brand)?.mentioned;
+      }).length
     }));
 
+    // Calculate intersections
     activeBrands.forEach((brand1, i) => {
       activeBrands.slice(i + 1).forEach(brand2 => {
-        const intersection = gapMatrix.filter(row => 
-          row.mentions.find(m => m.name === brand1)?.mentioned &&
-          row.mentions.find(m => m.name === brand2)?.mentioned
-        ).length;
+        const intersection = gapMatrix.filter(row => {
+          const brand1Mentioned = brand1 === 'Gap Inc.'
+            ? (MAIN_BRAND_ALIASES.some(alias => 
+                row.mentions.find(m => m.name === alias)?.mentioned
+              ) ||
+              row.citations?.some(citation => 
+                MAIN_BRAND_DOMAINS.includes(new URL(citation.url).hostname)
+              ))
+            : row.mentions.find(m => m.name === brand1)?.mentioned;
+
+          const brand2Mentioned = brand2 === 'Gap Inc.'
+            ? (MAIN_BRAND_ALIASES.some(alias => 
+                row.mentions.find(m => m.name === alias)?.mentioned
+              ) ||
+              row.citations?.some(citation => 
+                MAIN_BRAND_DOMAINS.includes(new URL(citation.url).hostname)
+              ))
+            : row.mentions.find(m => m.name === brand2)?.mentioned;
+
+          return brand1Mentioned && brand2Mentioned;
+        }).length;
+
         if (intersection > 0) {
           sets.push({ sets: [brand1, brand2], size: intersection });
         }
@@ -208,7 +247,7 @@ export default function GapAnalysisVenn({ gapMatrix, competitors }: { gapMatrix:
               >
                 <div 
                   className="w-3 h-3 rounded-full"
-                  style={{backgroundColor: brand === 'Nike' ? '#000000' : competitors.find(c => c.names[0] === brand)?.color || '#CCCCCC'}}
+                  style={{backgroundColor: brand === 'Gap' ? '#000000' : competitors.find(c => c.names[0] === brand)?.color || '#CCCCCC'}}
                 />
                 <span>{brand}: {brandData ? brandData.size : 0}</span>
               </Button>

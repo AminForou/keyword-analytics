@@ -38,7 +38,13 @@ type KeywordWithCitations = {
   citations: Citation[];
 };
 
-const MAIN_BRAND_DOMAIN = "www.nike.com";
+const MAIN_BRAND_DOMAINS = [
+  "www.gap.com",
+  "oldnavy.gap.com",
+  "bananarepublic.gap.com"
+];
+
+const MAIN_BRAND_NAME = "Gap Inc.";
 const BASE_COLOR = "#8884d8";
 const ROWS_PER_PAGE = 10;
 
@@ -59,7 +65,8 @@ export default function CitationsAnalysis() {
     const allCitations = keywordsWithCitations.flatMap((k) => k.citations);
     const citationCounts = allCitations.reduce((acc, citation) => {
       const domain = new URL(citation.url).hostname;
-      acc[domain] = (acc[domain] || 0) + 1;
+      const normalizedDomain = MAIN_BRAND_DOMAINS.includes(domain) ? MAIN_BRAND_NAME : domain;
+      acc[normalizedDomain] = (acc[normalizedDomain] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
 
@@ -68,7 +75,9 @@ export default function CitationsAnalysis() {
       .map(([domain, count]) => ({ domain, count }));
 
     const brandCitations = keywordsWithCitations.filter(k => 
-      k.citations.some(citation => new URL(citation.url).hostname === MAIN_BRAND_DOMAIN)
+      k.citations.some(citation => 
+        MAIN_BRAND_DOMAINS.includes(new URL(citation.url).hostname)
+      )
     ).length;
 
     return {
@@ -88,7 +97,9 @@ export default function CitationsAnalysis() {
 
     if (brandCitationFilter !== "all") {
       filtered = filtered.filter((k) => {
-        const hasBrandCitation = k.citations.some(citation => new URL(citation.url).hostname === MAIN_BRAND_DOMAIN);
+        const hasBrandCitation = k.citations.some(citation => 
+          MAIN_BRAND_DOMAINS.includes(new URL(citation.url).hostname)
+        );
         return brandCitationFilter === "with" ? hasBrandCitation : !hasBrandCitation;
       });
     }
@@ -99,8 +110,12 @@ export default function CitationsAnalysis() {
       } else if (sortKey === "citationCount") {
         return sortOrder === "asc" ? a.citations.length - b.citations.length : b.citations.length - a.citations.length;
       } else if (sortKey === "brandCitation") {
-        const aHasBrandCitation = a.citations.some(citation => new URL(citation.url).hostname === MAIN_BRAND_DOMAIN);
-        const bHasBrandCitation = b.citations.some(citation => new URL(citation.url).hostname === MAIN_BRAND_DOMAIN);
+        const aHasBrandCitation = a.citations.some(citation => 
+          MAIN_BRAND_DOMAINS.includes(new URL(citation.url).hostname)
+        );
+        const bHasBrandCitation = b.citations.some(citation => 
+          MAIN_BRAND_DOMAINS.includes(new URL(citation.url).hostname)
+        );
         return sortOrder === "asc" ? (aHasBrandCitation ? 1 : -1) : (bHasBrandCitation ? 1 : -1);
       }
       return 0;
@@ -134,6 +149,9 @@ export default function CitationsAnalysis() {
     <Card className="w-full bg-white shadow-lg rounded-lg overflow-hidden">
       <CardHeader className="bg-gray-50 border-b border-gray-200">
         <CardTitle className="text-xl font-bold text-gray-800">Citations Analysis</CardTitle>
+        <div className="text-sm text-gray-500">
+          {MAIN_BRAND_NAME} includes: {MAIN_BRAND_DOMAINS.map(d => d.replace('www.', '')).join(", ")}
+        </div>
       </CardHeader>
       <CardContent className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
@@ -228,7 +246,9 @@ export default function CitationsAnalysis() {
                       <TableCell className="font-medium">{keyword.keyword}</TableCell>
                       <TableCell>{keyword.citations.length}</TableCell>
                       <TableCell>
-                        {keyword.citations.some(citation => new URL(citation.url).hostname === MAIN_BRAND_DOMAIN) ? (
+                        {keyword.citations.some(citation => 
+                          MAIN_BRAND_DOMAINS.includes(new URL(citation.url).hostname)
+                        ) ? (
                           <span className="bg-green-100 text-green-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">Yes</span>
                         ) : (
                           <span className="bg-gray-100 text-gray-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">No</span>

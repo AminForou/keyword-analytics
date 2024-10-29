@@ -15,6 +15,9 @@ type GapMatrixItem = {
   // Add any other properties that your gapMatrix items have
 };
 
+// Add constant for main brand names
+const MAIN_BRAND_ALIASES = ["Gap", "Old Navy", "Banana Republic"];
+
 export default function GapAnalysisTopTable({ 
   gapMatrix, 
   gapFilter, 
@@ -90,8 +93,8 @@ export default function GapAnalysisTopTable({
                 Clicks <ArrowUpDown className="ml-2 h-4 w-4" />
               </Button>
             </TableHead>
-            <TableHead>{mainBrand}</TableHead>
-            {allBrands.filter(brand => brand !== mainBrand).map(brand => (
+            <TableHead>Gap Inc.</TableHead>
+            {allBrands.filter(brand => !MAIN_BRAND_ALIASES.includes(brand)).map(brand => (
               <TableHead key={brand}>{brand}</TableHead>
             ))}
             <TableHead>Gap Status</TableHead>
@@ -113,21 +116,23 @@ export default function GapAnalysisTopTable({
               <TableCell>{row.impressions.toLocaleString()}</TableCell>
               <TableCell>{row.clicks.toLocaleString()}</TableCell>
               <TableCell>
-                {row.mentions.find(m => m.name === mainBrand)?.mentioned ? (
+                {row.mentions.some(m => MAIN_BRAND_ALIASES.includes(m.name) && m.mentioned) ? (
                   <Check className="text-green-500" />
                 ) : (
                   <X className="text-red-500" />
                 )}
               </TableCell>
-              {allBrands.filter(brand => brand !== mainBrand).map(brand => (
-                <TableCell key={brand}>
-                  {row.mentions.find(m => m.name === brand)?.mentioned ? (
-                    <Check className="text-green-500" />
-                  ) : (
-                    <X className="text-red-500" />
-                  )}
-                </TableCell>
-              ))}
+              {allBrands
+                .filter(brand => !MAIN_BRAND_ALIASES.includes(brand))
+                .map(brand => (
+                  <TableCell key={brand}>
+                    {row.mentions.find(m => m.name === brand)?.mentioned ? (
+                      <Check className="text-green-500" />
+                    ) : (
+                      <X className="text-red-500" />
+                    )}
+                  </TableCell>
+                ))}
               <TableCell>
                 <span
                   className={`px-2 py-1 rounded ${

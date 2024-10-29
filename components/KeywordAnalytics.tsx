@@ -81,15 +81,15 @@ export default function KeywordAnalytics() {
   const conversationPaneRef = useRef<HTMLDivElement>(null)
 
   // Update brand mentions
-  const [brandMentions, setBrandMentions] = useState<string[]>(['Nike', 'Nike.com']);
-  const [brandMentionsInput, setBrandMentionsInput] = useState<string>('Nike, Nike.com');
+  const [brandMentions, setBrandMentions] = useState<string[]>(['Gap','Old Navy','Banana Republic','Gap.com']);
+  const [brandMentionsInput, setBrandMentionsInput] = useState<string>('Gap, Old Navy, Banana Republic, Gap.com');
 
   const [visibleCompetitors, setVisibleCompetitors] = useState<string[]>([]);
 
   const [activeView, setActiveView] = useState("overview")
 
   const [mainBrand, setMainBrand] = useState<Competitor>({
-    name: "Nike",
+    name: "Gap",  
     color: "#000000",
     isMainBrand: true
   });
